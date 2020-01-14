@@ -8,18 +8,17 @@
       auth:
         server: "https://api.ocp4demo.sc.osecloud.com:6443"
         token: "WmndH2U7QB39WcxH8WmhdS71DR5dmjlKHr9ND-ZgwJE"
-      project: "bookinfo2" # A better solution will be to label the project with service-discovery: "true"
+      # project: "bookinfo2" # A better solution will be to label the project with service-discovery: "true"
     service:
-      selector:
-        key: "catalog"
-        value: "catalog-service"
+      selector: 'catalog=true'
 
   tasks:
     - name: Authenticating with target cluster using {{ target.auth.server }}.
       command: oc login --token={{ target.auth.token }} --server={{ target.auth.server }}
-    - name: Querying project services for project {{ target.project }}
-      command: oc get services --namespace {{ target.project }} -o jsonpath='{range .items[*]}{"\t"}{.metadata.name} --selector={{ service.selector.key }}={{ service.selector.value }}'
-      register: catalog
-      # loop: "{{ catalog.stdout_lines }}"
-      # when: catalog = {{ service.names }}
-    - debug: var={{ catalog.stdout }}
+    - name: Querying services with label {{ service.selector }}
+      # Potentially expensive query on clusters with many projects.
+      command: oc get services -A -o jsonpath='{range .items[*]}{"\t"}{.metadata.name}' --selector {{ service.selector }}
+      register: services
+      # loop: "{{ services.stdout_lines }}"
+      # when: services = {{ service.names }}
+    - debug: var={{ services.stdout }}
