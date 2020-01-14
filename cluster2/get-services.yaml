@@ -1,0 +1,25 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    target:
+      auth:
+        server: "https://api.ocp4demo.sc.osecloud.com:6443"
+        token: "WmndH2U7QB39WcxH8WmhdS71DR5dmjlKHr9ND-ZgwJE"
+      project: "bookinfo2" # A better solution will be to label the project with service-discovery: "true"
+    service:
+      selector:
+        key: "catalog"
+        value: "catalog-service"
+
+  tasks:
+    - name: Authenticating with target cluster using {{ target.auth.server }}.
+      command: oc login --token={{ target.auth.token }} --server={{ target.auth.server }}
+    - name: Querying project services for project {{ target.project }}
+      command: oc get services --namespace {{ target.project }} -o jsonpath='{range .items[*]}{"\t"}{.metadata.name} --selector={{ service.selector.key }}={{ service.selector.value }}'
+      register: catalog
+      # loop: "{{ catalog.stdout_lines }}"
+      # when: catalog = {{ service.names }}
+    - debug: var={{ catalog.stdout }}
