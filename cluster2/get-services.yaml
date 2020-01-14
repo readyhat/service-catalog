@@ -17,8 +17,7 @@
       command: oc login --token={{ target.auth.token }} --server={{ target.auth.server }}
     - name: Querying services with label {{ service.selector }}
       # Potentially expensive query on clusters with many projects.
-      command: oc get services -A -o jsonpath='{range .items[*]}{"\t"}{.metadata.name}' --selector {{ service.selector }}
+      command: oc get services -A -o jsonpath='{range .items[*]}{.metadata.name}{","}' --selector {{ service.selector }}
       register: services
       # loop: "{{ services.stdout_lines }}"
-      # when: services = {{ service.names }}
     - debug: var={{ services.stdout }}
