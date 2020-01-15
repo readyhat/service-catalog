@@ -8,16 +8,14 @@
       auth:
         server: "https://api.ocp4demo.sc.osecloud.com:6443"
         token: "WmndH2U7QB39WcxH8WmhdS71DR5dmjlKHr9ND-ZgwJE"
-      # project: "bookinfo2" # A better solution will be to label the project with service-discovery: "true"
-    service:
-      selector: 'catalog=true'
+    serviceMesh:
+      namespace: istio-system
 
   tasks:
     - name: Authenticating with target cluster using {{ target.auth.server }}.
       command: oc login --token={{ target.auth.token }} --server={{ target.auth.server }}
     - name: Querying services with label {{ service.selector }}
-      # Potentially expensive query on clusters with many projects.
-      command: oc get services -A -o jsonpath='{range .items[*]}{.metadata.name}{","}' --selector {{ service.selector }}
+      command: oc get ServiceMeshMemberRoll default --namespace {{ serviceMesh.namespace }} -o jsonpath='{.spec.members}'
       register: services
       # loop: "{{ services.stdout_lines }}"
     - debug: var={{ services.stdout }}
