@@ -3,10 +3,51 @@
 API_ENDPOINT="https://3scale-admin.apps.experian.demo.readyhat.guru/admin/api/services.xml"
 API_ACCESS_TOKEN="dd8d3852c7da85f59ec8b47a6563f7d5bd844ce28609444ee67c6495ced5399c"
 
-# 
+# 3scale Service Import 
+#
+# Import from OpenAPI Spec v2.0
+#
+# @service_name
+# @swagger_spec path
 3scale_import () {
+
+  local system_name_check=$(3scale service list catalog | tail -n +2 | awk '{print $3}' | grep $1)
+
+  # if [ -z "${system_name_check/ /}" ]; then
+  #   echo "Service system_name ($1) already exists. Exiting."
+  #   return;
+  # fi
+
+  # Begin import
   echo "Importing $1 ($2) to catalog via 3scale-toolbox..."
-  3scale import openapi --destination catalog $2 --override-private-base-url="https://echo-api.3scale.net" --default-credentials-userkey=userkey
+  3scale import openapi \
+    --destination catalog $2 \
+    --override-private-base-url="https://echo-api.3scale.net" \
+    --default-credentials-userkey=userkey \
+    --target_system_name $1
+
+  # TODO: Do we need to create a plan?
+  echo "Creating a default application plan..."
+  3scale application-plan apply catalog $1 Default \
+    --name "Default Plan" \
+    --default
+
+  echo "Create the application"    
+  3scale application apply catalog $1 \
+    --account admin+test@3scale.apps.experian.demo.readyhat.guru \
+    --name "$1" \
+    --description "Imported service." \
+    --plan Default \
+    --service=$1
+
+  echo "Export staging URL"
+  STAGING_URL=$(3scale proxy-config show catalog $1 sandbox | jq -r ".content.proxy.sandbox_endpoint")
+
+  # Readiness probe
+  # curl -D - -H "api-key: TODO: What does here" "$STAGING_URL/TODO: What endpoing are we testing here?"
+
+  echo "Promoting service to production..."
+  3scale proxy-config promote catalog $1
 }
 
 # Playbook Import
@@ -45,7 +86,7 @@ for service_name in $SERVICE_MESH_CONFIGURED_MEMBERS; do
   else 
     # TODO: Need to do the manual creation of service and backend
     echo "Invalid API Spec for: $service_name!"
-    playbook_import $service_name
+    # playbook_import $service_name
   fi
 done;
 
