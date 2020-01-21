@@ -1,0 +1,54 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    source:
+      auth:
+        server: "https://api.ocp4demo.sc.osecloud.com:6443"
+        # token: "KbMggDqF6ph1mOBhTGQJjNoA5zSE7_8x22KU2Y8JiB0"
+      serviceMesh:
+        namespace: istio-system
+      apiManager:
+        # Name of the catalog as defined as a 3scale "remote"
+        # `3scale remote list`
+        catalog: catalog
+
+  tasks:
+    # Authenticate with cluster
+    #
+    - name: Authenticating with source cluster using {{ source.auth.server }}.
+      command: oc login --token={{ token }} --server={{ source.auth.server }}
+
+    - name: Initialize service catalog inventory & import...
+      shell: filter-service-mesh-members.sh
+    # Query Service Mesh Services
+    #
+    # Query the service mesh "ServiceMeshMemberRoll" for all services ".spec.members".
+    # Should we consider querying for all "registered" services at ".status.configuredMembers"?
+    #
+    # @services to store results
+    # - name: Query services registered to {{ source.service.selector }}...
+      command: oc get ServiceMeshMemberRoll default --namespace {{ source.serviceMesh.namespace }} -o json | jq '.status.configuredMembers'
+    #   register: services
+
+      # Loop through services
+      #
+      # Iterate over all services to query for service hostname and path 
+      # to register with 3scale.
+      # loop: "{{ services.stdout_lines }}"
+      # oc get virtualservice -n petstore-service --field-selector "metadata.name==pet" -o json | jq '.items[0].spec.hosts[0]'
+    # - debug: var={{ services.stdout }}
+
+    # Import service to 3scale
+    #
+    # TODO: Describe what is happening here.
+    # Iterate over services
+    # - TODO: Need the swagger path (e.g.: http://petstore2.apps.ocp4demo.sc.osecloud.com/api/swagger.json)
+    # - Need the value for override. (Vinay says: in our case we may need to add istio-igress* as the --override-private-base-url that's where 3scale sends the call to)
+    # --destination (the destination registerd as a remote in `3scale remote list`)
+    # -t --target_system_name (the target system name) (Optional - no value will be automatically created. - maybe slugify the name)
+    # --default-credentials-userkey=userkey (to supress the "Error: User key must be provided by --default-credentials-userkey optional param")
+    # - name: Import services to 3scale
+    #   command: 3scale import openapi --destination {{ apiManager.catalog }} {{ TODO.define.swaggerPath }} --override-private-base-url="https://echo-api.3scale.net" --default-credentials-userkey=userkey

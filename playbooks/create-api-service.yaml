@@ -1,0 +1,33 @@
+---
+- hosts: localhost
+  connection: local
+
+  vars:
+    api_endpoint: "{{ api_endpoint }}"
+    service_name: "{{ service_name }}"
+    body: "{{ body }}"
+    # http_method: "GET"
+    # pattern: "/foobar"
+    # delta: "1"
+    # metric_id: "10"
+    # service_id: "4"    
+
+  tasks:
+    - name: Creating the {{ service_name }} service...
+      uri:
+        url: "{{ api_endpoint }}"
+        method: POST
+        headers:
+          Accept: '*/*'
+          Content-Type: application/x-www-form-urlencoded
+        body: "{{ body }}"
+        status_code: 201    
+    # - name: Create service endpoint
+    #   uri:
+    #     url: https://3scale-admin.apps.experian.demo.readyhat.guru/admin/api/services/{{service_id}}/proxy/mapping_rules.xml
+    #     method: POST
+    #     headers:
+    #       Accept: '*/*'
+    #       Content-Type: application/x-www-form-urlencoded
+    #     body: "access_token={{ access_token }}&http_method={{ http_method }}&pattern={{ pattern }}&delta={{ delta}}&metric_id={{ metric_id}}"
+    #     status_code: 201    
