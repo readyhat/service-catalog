@@ -107,7 +107,7 @@ importVia3ScaleApi () {
     --service=$1
 }
 
-# TODO: Describe
+# Start here
 echo "Discovering service mesh services..."
 SERVICE_MESH_CONFIGURED_MEMBERS=$(oc get ServiceMeshMemberRoll default --namespace istio-system -o json | jq '.status.configuredMembers' -c | jq -r '.[]')
 
