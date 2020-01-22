@@ -48,10 +48,6 @@ importOpenApiSpec () {
     -d 'access_token=d85fa7da04f2324feb0a77e2eaf565ae27e5203b2d4a7ef13ed39c193b4556e9&deployment_option=service_mesh_istio' \
     --silent --output /dev/null
 
-  # Enable access to service from developer portal
-  # local application_plan_id=$(3scale application-plan list catalog 47 | tail -n +2 | awk '{print $1}')
-  # curl -X POST "https://3scale-admin.apps.experian.demo.readyhat.guru/admin/api/account_plans/$application_plan_id/features
-
   echo "Promoting service to production..."
   3scale proxy-config promote catalog $1
 
@@ -132,7 +128,7 @@ for service_name in $SERVICE_MESH_CONFIGURED_MEMBERS; do
   else 
     # TODO: Need to do the manual creation of service and backend
     echo "Invalid API Spec for: $service_name!"
-    # importVia3ScaleApi $service_name
+    importVia3ScaleApi $service_name
   fi
 done;
 
