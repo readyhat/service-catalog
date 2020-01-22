@@ -21,7 +21,7 @@
           Accept: '*/*'
           Content-Type: application/x-www-form-urlencoded
         body: "{{ body }}"
-        status_code: 201    
+        status_code: 201
     # - name: Create service endpoint
     #   uri:
     #     url: https://3scale-admin.apps.experian.demo.readyhat.guru/admin/api/services/{{service_id}}/proxy/mapping_rules.xml
